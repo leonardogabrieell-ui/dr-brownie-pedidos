@@ -1,6 +1,6 @@
 {
   "name": "dr-brownie-pedidos",
-  "version": "2.0.0",
+  "version": "4.0.0",
   "private": true,
   "description": "Catálogo de brownies com estoque, pedidos, custos, lucro e envio para WhatsApp.",
   "main": "server.js",

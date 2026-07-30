@@ -17,7 +17,9 @@ const elements = {
   feedback: document.querySelector('#formFeedback'),
   successModal: document.querySelector('#successModal'),
   successText: document.querySelector('#successText'),
-  whatsappButton: document.querySelector('#whatsappButton')
+  whatsappButton: document.querySelector('#whatsappButton'),
+  heroWhatsapp: document.querySelector('#heroWhatsapp'),
+  footerWhatsapp: document.querySelector('#footerWhatsapp')
 };
 
 async function loadCatalog() {
@@ -28,6 +30,13 @@ async function loadCatalog() {
     document.querySelector('#businessName').textContent = state.catalog.settings.businessName || 'Dr. Brownie';
     document.querySelector('#announcement').textContent = state.catalog.settings.announcement;
     document.querySelector('#paymentMessage').textContent = state.catalog.settings.paymentMessage;
+    const storePhone = state.catalog.settings.whatsappNumber || '5519999200992';
+    const storePhoneDisplay = state.catalog.settings.whatsappDisplay || '(19) 99920-0992';
+    const contactUrl = `https://wa.me/${storePhone}`;
+    elements.heroWhatsapp.href = contactUrl;
+    elements.heroWhatsapp.textContent = `WhatsApp Dr. Brownie: ${storePhoneDisplay}`;
+    elements.footerWhatsapp.href = contactUrl;
+    elements.footerWhatsapp.textContent = `WhatsApp: ${storePhoneDisplay}`;
     document.title = `${state.catalog.settings.businessName || 'Dr. Brownie'} — Pedidos`;
     renderProducts();
     renderDeliveryDates();
@@ -142,7 +151,7 @@ async function submitOrder(event) {
   };
 
   elements.submitButton.disabled = true;
-  elements.submitButton.textContent = 'Registrando pedido...';
+  elements.submitButton.textContent = 'Registrando e reservando estoque...';
   try {
     const response = await fetch('/api/orders', {
       method: 'POST',
@@ -152,7 +161,7 @@ async function submitOrder(event) {
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || 'Não foi possível registrar o pedido.');
 
-    elements.successText.textContent = `Pedido ${result.order.id} no valor de ${currency.format(result.order.total)}. Agora envie a mensagem para confirmar e receber a chave PIX.`;
+    elements.successText.textContent = `Pedido ${result.order.id} no valor de ${currency.format(result.order.total)} registrado. As unidades já foram reservadas no estoque. Agora confirme pelo WhatsApp e receba a chave PIX.`;
     if (result.whatsappUrl) {
       elements.whatsappButton.href = result.whatsappUrl;
       elements.whatsappButton.hidden = false;
@@ -168,7 +177,7 @@ async function submitOrder(event) {
     elements.feedback.textContent = error.message;
   } finally {
     elements.submitButton.disabled = false;
-    elements.submitButton.textContent = 'Enviar pedido pelo WhatsApp';
+    elements.submitButton.textContent = 'Finalizar pedido';
   }
 }
 

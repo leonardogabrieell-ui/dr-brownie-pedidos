@@ -40,7 +40,7 @@ async function json(url, options = {}) {
 (async () => {
   try {
     const health = await waitForServer();
-    assert.strictEqual(health.version, '2.0.0');
+    assert.strictEqual(health.version, '4.0.0');
 
     const login = await json('/api/admin/login', {
       method: 'POST',
@@ -50,13 +50,16 @@ async function json(url, options = {}) {
     const cookie = login.response.headers.get('set-cookie').split(';')[0];
     assert(cookie.startsWith('drb_session='));
 
-    await json('/api/admin/products/tradicional', {
+    await json('/api/admin/products/ninho', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', Cookie: cookie },
       body: JSON.stringify({ cost: 7.5, price: 12, stock: 10, active: true })
     });
 
     const catalog = (await json('/api/catalog')).data;
+    assert.deepStrictEqual(catalog.products.map(product => product.id), ['ninho', 'nutella', 'cookies']);
+    assert.strictEqual(catalog.settings.whatsappNumber, '5519999200992');
+    assert.strictEqual(catalog.settings.whatsappDisplay, '(19) 99920-0992');
     const deliveryDate = catalog.deliveryDates.find(item => !item.closed)?.date;
     assert(deliveryDate, 'Deve haver uma data de entrega disponível.');
 
@@ -73,7 +76,7 @@ async function json(url, options = {}) {
         },
         deliveryDate,
         notes: '',
-        items: [{ productId: 'tradicional', quantity: 2 }]
+        items: [{ productId: 'ninho', quantity: 2 }]
       })
     })).data;
 
@@ -82,6 +85,22 @@ async function json(url, options = {}) {
     assert.strictEqual(created.order.grossProfit, 9);
     assert.strictEqual(created.order.items[0].cost, 7.5);
     assert.strictEqual(created.order.items[0].costTotal, 15);
+    assert(created.whatsappUrl.startsWith('https://wa.me/5519999200992'));
+    assert.strictEqual((await json('/api/catalog')).data.products.find(product => product.id === 'ninho').stock, 8);
+
+    await json(`/api/admin/orders/${encodeURIComponent(created.order.id)}/status`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Cookie: cookie },
+      body: JSON.stringify({ status: 'cancelled' })
+    });
+    assert.strictEqual((await json('/api/catalog')).data.products.find(product => product.id === 'ninho').stock, 10);
+
+    await json(`/api/admin/orders/${encodeURIComponent(created.order.id)}/status`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Cookie: cookie },
+      body: JSON.stringify({ status: 'pending_payment' })
+    });
+    assert.strictEqual((await json('/api/catalog')).data.products.find(product => product.id === 'ninho').stock, 8);
 
     await json(`/api/admin/orders/${encodeURIComponent(created.order.id)}/status`, {
       method: 'POST',
@@ -96,16 +115,20 @@ async function json(url, options = {}) {
     assert.strictEqual(dashboard.stats.totalReceivedDelivered, 29);
     assert.strictEqual(dashboard.stats.costDelivered, 15);
     assert.strictEqual(dashboard.stats.grossProfitDelivered, 9);
-    assert.strictEqual(dashboard.store.products.find(product => product.id === 'tradicional').stock, 8);
+    assert.strictEqual(dashboard.store.products.find(product => product.id === 'ninho').stock, 8);
 
     const adminJs = fs.readFileSync(path.join(__dirname, 'public', 'admin.js'), 'utf8');
     const adminHtml = fs.readFileSync(path.join(__dirname, 'public', 'admin.html'), 'utf8');
     assert(adminHtml.includes('Preço de custo'));
     assert(adminHtml.includes('Financeiro'));
     assert(adminJs.includes('Lucro bruto dos produtos'));
+    assert(adminJs.includes('const formElement = event.currentTarget'));
+    assert(!adminJs.includes('event.currentTarget.reset()'));
+    assert(adminHtml.includes('/admin.js?v=4'));
+    assert(fs.readFileSync(path.join(__dirname, 'public', 'index.html'), 'utf8').includes('Finalizar pedido'));
     assert(fs.readFileSync(path.join(__dirname, 'server.js'), 'utf8').includes('day === 5 || day === 6 || day === 0'));
 
-    console.log('Testes completos da V2 aprovados: estoque, custo, venda, entrega e lucro.');
+    console.log('Testes completos da V4 aprovados: login, sabores, WhatsApp, estoque, cancelamento, venda e lucro.');
   } finally {
     child.kill('SIGTERM');
     fs.rmSync(tempDir, { recursive: true, force: true });

@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Great+Vibes&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/styles.css?v=4">
 </head>
 <body>
   <header class="hero hero--rx">
@@ -29,6 +29,8 @@
           <span>🚚 Entregas de sexta a domingo</span>
         </div>
         <div class="notice notice--hero" id="announcement">Entregas somente às sextas, sábados e domingos. Não trabalhamos com retirada no momento.</div>
+        <a id="heroWhatsapp" class="whatsapp-contact whatsapp-contact--hero" href="https://wa.me/5519999200992" target="_blank" rel="noopener">WhatsApp Dr. Brownie: (19) 99920-0992</a>
+        <p class="contact-help">Para fazer pedidos, monte o carrinho no site. O WhatsApp fica para dúvidas, pagamento e confirmação.</p>
       </div>
 
       <div class="rx-card">
@@ -129,7 +131,8 @@
           <textarea name="notes" rows="3" maxlength="500" placeholder="Ex.: tocar a campainha, sem troco..."></textarea>
         </label>
         <p class="payment-note" id="paymentMessage">Pagamento via PIX após a confirmação pelo WhatsApp.</p>
-        <button type="submit" class="primary-button" id="submitButton">Enviar pedido pelo WhatsApp</button>
+        <button type="submit" class="primary-button" id="submitButton">Finalizar pedido</button>
+        <p class="stock-reservation-note">Ao finalizar, o pedido é salvo e as unidades ficam reservadas no estoque.</p>
         <p class="form-feedback" id="formFeedback" role="status"></p>
       </form>
     </aside>
@@ -141,8 +144,8 @@
       <h2>Seu pedido em três passos</h2>
       <div class="steps">
         <article><span>1</span><h3>Escolha</h3><p>Selecione os sabores e quantidades disponíveis.</p></article>
-        <article><span>2</span><h3>Confirme</h3><p>Envie o pedido e receba a confirmação pelo WhatsApp.</p></article>
-        <article><span>3</span><h3>Receba</h3><p>Faça o PIX e aguarde a entrega no dia escolhido.</p></article>
+        <article><span>2</span><h3>Finalize no site</h3><p>O pedido é registrado e as unidades são reservadas no estoque.</p></article>
+        <article><span>3</span><h3>Confirme</h3><p>Abra o WhatsApp, combine o PIX e aguarde a entrega no dia escolhido.</p></article>
       </div>
     </div>
   </section>
@@ -152,6 +155,7 @@
       <div>
         <strong>Dr. Brownie</strong>
         <p>A dose certa de felicidade para o seu dia.</p>
+        <a id="footerWhatsapp" class="footer-whatsapp" href="https://wa.me/5519999200992" target="_blank" rel="noopener">WhatsApp: (19) 99920-0992</a>
       </div>
       <a href="/admin.html" class="admin-link">Acesso administrativo</a>
     </div>
@@ -162,11 +166,11 @@
       <div class="success-icon">✓</div>
       <h2>Pedido registrado!</h2>
       <p id="successText"></p>
-      <a id="whatsappButton" class="primary-button" target="_blank" rel="noopener">Abrir WhatsApp</a>
+      <a id="whatsappButton" class="primary-button" target="_blank" rel="noopener">Confirmar pelo WhatsApp</a>
       <button class="secondary-button" id="closeSuccess">Voltar ao cardápio</button>
     </div>
   </div>
 
-  <script src="/app.js" defer></script>
+  <script src="/app.js?v=4" defer></script>
 </body>
 </html>

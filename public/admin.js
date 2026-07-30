@@ -222,7 +222,7 @@ function renderFinance() {
       </article>`).join('')
     : '<p class="muted">Ainda não há pedidos entregues neste período.</p>';
 
-  const stockRows = dashboardData.store.products.map(product => {
+  const stockRows = dashboardData.store.products.filter(product => !product.archived).map(product => {
     const stock = Number(product.stock || 0);
     const costValue = Number(product.cost || 0) * stock;
     const saleValue = Number(product.price || 0) * stock;
@@ -241,7 +241,7 @@ function renderFinance() {
 
 function renderProducts() {
   const container = document.querySelector('#productsAdminList');
-  container.innerHTML = dashboardData.store.products.map(product => {
+  container.innerHTML = dashboardData.store.products.filter(product => !product.archived).map(product => {
     const profit = Number(product.price || 0) - Number(product.cost || 0);
     const stockCost = Number(product.cost || 0) * Number(product.stock || 0);
     return `
@@ -358,14 +358,23 @@ function setupTabs() {
 
 document.querySelector('#loginForm').addEventListener('submit', async event => {
   event.preventDefault();
+  const formElement = event.currentTarget;
   const feedback = document.querySelector('#loginFeedback');
+  const submitButton = formElement.querySelector('button[type="submit"]');
   feedback.textContent = '';
+  submitButton.disabled = true;
+  submitButton.textContent = 'Entrando...';
   try {
-    const form = new FormData(event.currentTarget);
-    await api('/api/admin/login', { method: 'POST', body: JSON.stringify({ password: form.get('password') }) });
-    event.currentTarget.reset();
+    const formData = new FormData(formElement);
+    await api('/api/admin/login', { method: 'POST', body: JSON.stringify({ password: formData.get('password') }) });
+    formElement.reset();
     await loadDashboard();
-  } catch (error) { feedback.textContent = error.message; }
+  } catch (error) {
+    feedback.textContent = error.message;
+  } finally {
+    submitButton.disabled = false;
+    submitButton.textContent = 'Entrar';
+  }
 });
 
 document.querySelector('#logoutButton').addEventListener('click', async () => {

@@ -12,15 +12,17 @@ const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
 const STORE_FILE = path.join(DATA_DIR, 'store.json');
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'trocar123';
 const USING_DEFAULT_PASSWORD = !process.env.ADMIN_PASSWORD;
+const STORE_VERSION = 3;
+const DEFAULT_WHATSAPP = '5519999200992';
 const sessions = new Map();
 let mutationQueue = Promise.resolve();
 
 const defaultStore = {
-  version: 2,
+  version: STORE_VERSION,
   sequence: 0,
   settings: {
     businessName: 'Dr. Brownie',
-    whatsappNumber: '',
+    whatsappNumber: DEFAULT_WHATSAPP,
     deliveryFee: 5,
     minOrder: 0,
     city: 'Jaguariúna',
@@ -30,10 +32,9 @@ const defaultStore = {
     paymentMessage: 'Pagamento via PIX após a confirmação do pedido pelo WhatsApp.'
   },
   products: [
-    { id: 'tradicional', name: 'Tradicional', description: 'Brownie intenso, casquinha fina e interior macio.', cost: 7.5, price: 12, stock: 0, active: true, imageData: '' },
-    { id: 'ninho', name: 'Ninho', description: 'Brownie com cobertura cremosa de leite Ninho.', cost: 7.5, price: 12, stock: 0, active: true, imageData: '' },
-    { id: 'doce-de-leite', name: 'Doce de leite', description: 'Brownie com uma camada generosa de doce de leite.', cost: 7.5, price: 12, stock: 0, active: true, imageData: '' },
-    { id: 'prestigio', name: 'Prestígio', description: 'Chocolate com recheio cremoso de coco.', cost: 7.5, price: 12, stock: 0, active: true, imageData: '' }
+    { id: 'ninho', name: 'Ninho', description: 'Brownie com recheio cremoso de leite Ninho.', cost: 7.5, price: 12, stock: 0, active: true, archived: false, imageData: '' },
+    { id: 'nutella', name: 'Nutella', description: 'Brownie com recheio cremoso de Nutella.', cost: 7.5, price: 12, stock: 0, active: true, archived: false, imageData: '' },
+    { id: 'cookies', name: 'Cookies', description: 'Brownie com pedaços crocantes de cookies.', cost: 7.5, price: 12, stock: 0, active: true, archived: false, imageData: '' }
   ],
   orders: [],
   closedDates: []
@@ -48,20 +49,48 @@ function finiteNumber(value, fallback = 0) {
   return Number.isFinite(number) ? number : fallback;
 }
 
+function migrateLegacyProducts(products, orders) {
+  const existing = Array.isArray(products) ? products : [];
+  const targets = clone(defaultStore.products);
+  const referencedIds = new Set((Array.isArray(orders) ? orders : [])
+    .flatMap(order => Array.isArray(order.items) ? order.items : [])
+    .map(item => String(item.productId || ''))
+    .filter(Boolean));
+
+  const migrated = targets.map(target => {
+    const match = existing.find(product => product.id === target.id || slugify(product.name) === target.id);
+    return match
+      ? { ...target, ...match, id: target.id, name: target.name, active: true, archived: false }
+      : target;
+  });
+
+  const targetIds = new Set(targets.map(product => product.id));
+  const archived = existing
+    .filter(product => !targetIds.has(product.id) && referencedIds.has(String(product.id || '')))
+    .map(product => ({ ...product, active: false, archived: true }));
+
+  return [...migrated, ...archived];
+}
+
 function upgradeStore(input) {
   const store = input && typeof input === 'object' ? input : clone(defaultStore);
-  store.version = 2;
+  const originalVersion = Math.max(0, Math.floor(finiteNumber(store.version, 0)));
+  store.version = STORE_VERSION;
   store.sequence = Math.max(0, Math.floor(finiteNumber(store.sequence, 0)));
   store.settings = { ...defaultStore.settings, ...(store.settings || {}) };
+  if (!normalizePhone(store.settings.whatsappNumber)) store.settings.whatsappNumber = DEFAULT_WHATSAPP;
+  if (!String(store.settings.businessName || '').trim()) store.settings.businessName = 'Dr. Brownie';
   store.closedDates = Array.isArray(store.closedDates) ? store.closedDates : [];
-  store.products = Array.isArray(store.products) ? store.products : clone(defaultStore.products);
   store.orders = Array.isArray(store.orders) ? store.orders : [];
+  store.products = Array.isArray(store.products) ? store.products : clone(defaultStore.products);
+  if (originalVersion < STORE_VERSION) store.products = migrateLegacyProducts(store.products, store.orders);
 
   for (const product of store.products) {
     product.cost = Math.max(0, finiteNumber(product.cost, 0));
     product.price = Math.max(0, finiteNumber(product.price, 0));
     product.stock = Math.max(0, Math.floor(finiteNumber(product.stock, 0)));
     product.active = product.active !== false;
+    product.archived = product.archived === true;
     product.description = String(product.description || '');
     product.imageData = String(product.imageData || '');
   }
@@ -100,7 +129,7 @@ function readStore() {
     const parsed = JSON.parse(fs.readFileSync(STORE_FILE, 'utf8'));
     const originalVersion = parsed.version;
     const store = upgradeStore(parsed);
-    if (originalVersion !== 2) writeStoreSync(store);
+    if (originalVersion !== STORE_VERSION) writeStoreSync(store);
     return store;
   } catch (error) {
     console.error('Falha ao ler store.json:', error);
@@ -207,6 +236,13 @@ function normalizePhone(value) {
   return digits;
 }
 
+function formatPhone(value) {
+  const digits = normalizePhone(value).replace(/^55/, '');
+  if (digits.length === 11) return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+  if (digits.length === 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+  return String(value || '');
+}
+
 function money(value) {
   return Number(value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
@@ -287,9 +323,11 @@ function publicCatalog(store) {
       city: store.settings.city,
       announcement: store.settings.announcement,
       paymentMessage: store.settings.paymentMessage,
-      whatsappConfigured: Boolean(normalizePhone(store.settings.whatsappNumber))
+      whatsappConfigured: Boolean(normalizePhone(store.settings.whatsappNumber)),
+      whatsappNumber: normalizePhone(store.settings.whatsappNumber),
+      whatsappDisplay: formatPhone(store.settings.whatsappNumber)
     },
-    products: store.products.filter(product => product.active).map(product => ({
+    products: store.products.filter(product => product.active && !product.archived).map(product => ({
       id: product.id,
       name: product.name,
       description: product.description,
@@ -320,8 +358,9 @@ function financialStats(store) {
   });
   totals.grossProfitDelivered = totals.productRevenueDelivered - totals.costDelivered;
   totals.marginDelivered = totals.productRevenueDelivered > 0 ? (totals.grossProfitDelivered / totals.productRevenueDelivered) * 100 : 0;
-  totals.stockCostValue = store.products.reduce((sum, product) => sum + Number(product.cost || 0) * Number(product.stock || 0), 0);
-  totals.stockSaleValue = store.products.reduce((sum, product) => sum + Number(product.price || 0) * Number(product.stock || 0), 0);
+  const currentProducts = store.products.filter(product => !product.archived);
+  totals.stockCostValue = currentProducts.reduce((sum, product) => sum + Number(product.cost || 0) * Number(product.stock || 0), 0);
+  totals.stockSaleValue = currentProducts.reduce((sum, product) => sum + Number(product.price || 0) * Number(product.stock || 0), 0);
   totals.potentialStockProfit = totals.stockSaleValue - totals.stockCostValue;
   const openOrders = store.orders.filter(order => order.status !== 'cancelled' && order.status !== 'delivered' && order.stockReserved);
   totals.reservedUnits = openOrders.reduce((sum, order) => sum + order.items.reduce((itemSum, item) => itemSum + Number(item.quantity || 0), 0), 0);
@@ -345,7 +384,7 @@ function serveStatic(req, res, pathname) {
     };
     res.writeHead(200, {
       'Content-Type': types[ext] || 'application/octet-stream',
-      'Cache-Control': ext === '.html' ? 'no-cache' : 'public, max-age=300'
+      'Cache-Control': ['.html', '.css', '.js'].includes(ext) ? 'no-cache' : 'public, max-age=300'
     });
     fs.createReadStream(filePath).pipe(res);
   });
@@ -355,7 +394,7 @@ async function handleApi(req, res, url) {
   const pathname = url.pathname;
 
   if (req.method === 'GET' && pathname === '/api/health') {
-    return sendJson(res, 200, { ok: true, version: '2.0.0' });
+    return sendJson(res, 200, { ok: true, version: '4.0.0' });
   }
 
   if (req.method === 'GET' && pathname === '/api/catalog') {
@@ -524,6 +563,7 @@ async function handleApi(req, res, url) {
           price: Math.max(0, Number(body.price || 0)),
           stock: Math.max(0, Math.floor(Number(body.stock || 0))),
           active: body.active !== false,
+          archived: false,
           imageData: String(body.imageData || '').slice(0, 2800000)
         };
         store.products.push(created);
@@ -629,6 +669,6 @@ const server = http.createServer(async (req, res) => {
 
 ensureStore();
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`Dr. Brownie Pedidos V2 ativo na porta ${PORT}`);
+  console.log(`Dr. Brownie Pedidos V4 ativo na porta ${PORT}`);
   if (USING_DEFAULT_PASSWORD) console.warn('ATENÇÃO: defina ADMIN_PASSWORD antes de publicar.');
 });

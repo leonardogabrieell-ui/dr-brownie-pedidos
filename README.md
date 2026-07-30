@@ -1,16 +1,16 @@
-# Dr. Brownie Pedidos — V2.0
+# Dr. Brownie Pedidos — V4.0 corrigida
 
 Site completo para pedidos e gestão do Dr. Brownie.
 
 ## Cliente
 
-- cardápio com sabores, fotos, preços e estoque real;
+- cardápio inicial com Ninho, Nutella e Cookies, fotos, preços e estoque real;
 - seleção de quantidades;
 - entregas somente às sextas, sábados e domingos;
 - sem retirada;
 - escolha da data disponível;
 - endereço completo e observações;
-- pedido salvo antes de abrir o WhatsApp;
+- pedido salvo e estoque reservado antes de abrir o WhatsApp;
 - pagamento manual por PIX após confirmação.
 
 ## Painel administrativo
@@ -65,7 +65,7 @@ O Railway define `PORT` automaticamente.
 
 1. Abra `https://seu-dominio/admin.html`.
 2. Entre com a senha definida em `ADMIN_PASSWORD`.
-3. Em **Configurações**, informe o WhatsApp no formato `5519999999999`.
+3. O WhatsApp padrão já está configurado como `5519999200992`; altere em **Configurações** somente se necessário.
 4. Ajuste taxa de entrega, pedido mínimo e capacidade diária.
 5. Em **Sabores e estoque**, cadastre custo, preço de venda e estoque de cada sabor.
 6. Faça um pedido de teste.
@@ -74,3 +74,14 @@ O Railway define `PORT` automaticamente.
 ## Segurança
 
 Nunca publique com a senha padrão. Sempre configure `ADMIN_PASSWORD` no Railway.
+
+
+## Correções da V4
+
+- corrigido o erro `Cannot read properties of null (reading 'reset')` no login administrativo;
+- sabores iniciais corrigidos para Ninho, Nutella e Cookies;
+- WhatsApp Dr. Brownie visível no site: (19) 99920-0992;
+- botão principal alterado para **Finalizar pedido**;
+- o pedido é registrado e o estoque é reservado antes de abrir o WhatsApp;
+- cancelamento devolve as unidades ao estoque;
+- arquivos JavaScript e CSS usam atualização sem cache antigo após o deploy.
