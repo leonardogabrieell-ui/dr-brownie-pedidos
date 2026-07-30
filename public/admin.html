@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1c120d">
+  <title>Painel — Dr. Brownie</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght;500;600;700&family=Great+Vibes&family=Montserrat:wght;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="admin-body">
+  <main class="admin-shell">
+    <section class="login-card" id="loginCard">
+      <div class="brand-mark brand-mark--script">Dr</div>
+      <p class="eyebrow">Área administrativa</p>
+      <h1>Dr. Brownie</h1>
+      <p class="script-tagline">A dose certa de felicidade para o seu dia.</p>
+      <p class="muted">Entre para acompanhar pedidos, estoque, custos e lucro.</p>
+      <form id="loginForm">
+        <label>Senha administrativa<input type="password" name="password" required autocomplete="current-password"></label>
+        <button class="primary-button" type="submit">Entrar</button>
+        <p id="loginFeedback" class="form-feedback"></p>
+      </form>
+      <a href="/" class="back-link">← Voltar ao cardápio</a>
+    </section>
+
+    <section id="dashboard" hidden>
+      <header class="admin-header">
+        <div>
+          <p class="eyebrow">Painel de gestão</p>
+          <h1>Dr. Brownie Pedidos</h1>
+        </div>
+        <div class="admin-header__actions">
+          <a href="/" target="_blank" class="secondary-button">Ver cardápio</a>
+          <button id="logoutButton" class="secondary-button">Sair</button>
+        </div>
+      </header>
+
+      <div id="securityWarning" class="warning-banner" hidden>
+        A senha padrão ainda está ativa. Configure <strong>ADMIN_PASSWORD</strong> no Railway antes de divulgar o painel.
+      </div>
+
+      <section class="stats-grid" id="statsGrid"></section>
+
+      <nav class="admin-tabs" aria-label="Seções do painel">
+        <button class="tab-button active" data-tab="orders">Pedidos</button>
+        <button class="tab-button" data-tab="finance">Financeiro</button>
+        <button class="tab-button" data-tab="products">Sabores e estoque</button>
+        <button class="tab-button" data-tab="dates">Datas de entrega</button>
+        <button class="tab-button" data-tab="settings">Configurações</button>
+      </nav>
+
+      <section class="tab-panel active" id="tab-orders">
+        <div class="section-heading">
+          <div><p class="eyebrow">Operação</p><h2>Pedidos recebidos</h2></div>
+          <select id="orderFilter" class="compact-select">
+            <option value="all">Todos</option>
+            <option value="pending_payment">Aguardando pagamento</option>
+            <option value="paid">Pago</option>
+            <option value="out_for_delivery">Saiu para entrega</option>
+            <option value="delivered">Entregue</option>
+            <option value="cancelled">Cancelado</option>
+          </select>
+        </div>
+        <div id="ordersList" class="admin-list"></div>
+      </section>
+
+      <section class="tab-panel" id="tab-finance">
+        <div class="section-heading">
+          <div><p class="eyebrow">Resultados</p><h2>Financeiro</h2></div>
+          <select id="financePeriod" class="compact-select">
+            <option value="today">Hoje</option>
+            <option value="7d">Últimos 7 dias</option>
+            <option value="30d" selected>Últimos 30 dias</option>
+            <option value="month">Este mês</option>
+            <option value="all">Todo o período</option>
+          </select>
+        </div>
+        <p class="muted finance-note">Os valores realizados consideram somente pedidos marcados como <strong>Entregue</strong>. O lucro bruto dos produtos não desconta combustível, embalagem, taxas ou outros custos operacionais.</p>
+        <div class="open-orders-banner" id="openOrdersSummary"></div>
+        <section class="finance-stats-grid" id="financeStatsGrid"></section>
+        <div class="finance-two-columns">
+          <section class="panel-card">
+            <div><p class="eyebrow">Desempenho</p><h2>Resultado por sabor</h2></div>
+            <div id="flavorReport" class="report-list"></div>
+          </section>
+          <section class="panel-card">
+            <div><p class="eyebrow">Capital parado</p><h2>Valor do estoque atual</h2></div>
+            <div id="stockReport" class="report-list"></div>
+          </section>
+        </div>
+      </section>
+
+      <section class="tab-panel" id="tab-products">
+        <div class="admin-two-columns">
+          <form id="productForm" class="panel-card">
+            <input type="hidden" name="id">
+            <p class="eyebrow">Cadastro</p>
+            <h2 id="productFormTitle">Novo sabor</h2>
+            <label>Nome<input name="name" required placeholder="Ex.: Nutella"></label>
+            <label>Descrição<textarea name="description" rows="3" placeholder="Descrição curta do sabor"></textarea></label>
+            <div class="form-row three">
+              <label>Preço de custo<input name="cost" type="number" min="0" step="0.01" required></label>
+              <label>Preço de venda<input name="price" type="number" min="0" step="0.01" required></label>
+              <label>Estoque<input name="stock" type="number" min="0" step="1" required></label>
+            </div>
+            <div class="profit-preview" id="profitPreview">Lucro unitário estimado: R$ 0,00</div>
+            <label>Foto do sabor<input name="image" type="file" accept="image/*"></label>
+            <img id="imagePreview" class="image-preview" alt="Prévia do produto" hidden>
+            <label class="checkbox-line"><input name="active" type="checkbox" checked> Disponível no cardápio</label>
+            <div class="button-row">
+              <button class="primary-button" type="submit">Salvar sabor</button>
+              <button class="secondary-button" type="button" id="cancelProductEdit">Limpar</button>
+            </div>
+            <p id="productFeedback" class="form-feedback"></p>
+          </form>
+          <div>
+            <div class="section-heading"><div><p class="eyebrow">Cardápio</p><h2>Sabores cadastrados</h2></div></div>
+            <p class="muted">O custo salvo no pedido fica congelado. Alterar o custo hoje não modifica o lucro dos pedidos antigos.</p>
+            <div id="productsAdminList" class="admin-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="tab-panel" id="tab-dates">
+        <div class="section-heading"><div><p class="eyebrow">Agenda</p><h2>Sextas, sábados e domingos</h2></div></div>
+        <p class="muted">Feche uma data quando não puder entregar ou quando atingir sua capacidade.</p>
+        <div id="datesList" class="date-admin-grid"></div>
+      </section>
+
+      <section class="tab-panel" id="tab-settings">
+        <form id="settingsForm" class="panel-card settings-form">
+          <p class="eyebrow">Configuração geral</p>
+          <h2>Loja e entregas</h2>
+          <div class="form-row">
+            <label>Nome da marca<input name="businessName" required></label>
+            <label>WhatsApp que recebe pedidos<input name="whatsappNumber" inputmode="tel" placeholder="5519999999999" required></label>
+          </div>
+          <div class="form-row three">
+            <label>Taxa de entrega<input name="deliveryFee" type="number" min="0" step="0.01"></label>
+            <label>Pedido mínimo<input name="minOrder" type="number" min="0" step="0.01"></label>
+            <label>Máximo por data<input name="maxOrdersPerDate" type="number" min="1" step="1"></label>
+          </div>
+          <div class="form-row">
+            <label>Cidade principal<input name="city"></label>
+            <label>Dias futuros exibidos<input name="orderWindowDays" type="number" min="7" max="90" step="1"></label>
+          </div>
+          <label>Aviso do topo<textarea name="announcement" rows="3"></textarea></label>
+          <label>Mensagem sobre pagamento<textarea name="paymentMessage" rows="3"></textarea></label>
+          <button class="primary-button" type="submit">Salvar configurações</button>
+          <p id="settingsFeedback" class="form-feedback"></p>
+        </form>
+      </section>
+    </section>
+  </main>
+
+  <script src="/admin.js" defer></script>
+</body>
+</html>

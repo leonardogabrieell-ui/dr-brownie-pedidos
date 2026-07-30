@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0e0a08">
+  <title>Dr. Brownie — Pedidos</title>
+  <meta name="description" content="Escolha seus brownies e receba em casa às sextas, sábados e domingos.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Great+Vibes&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="hero hero--rx">
+    <div class="hero__overlay"></div>
+    <div class="container hero__content hero__content--rx">
+      <div class="hero-copy">
+        <div class="ornament-line" aria-hidden="true">
+          <span></span><span class="heart">♥</span><span></span>
+        </div>
+        <p class="eyebrow eyebrow--light">Doces selecionados</p>
+        <div class="brand-mark brand-mark--script">Dr</div>
+        <h1 id="businessName">Dr. Brownie</h1>
+        <p class="hero__subtitle">A dose certa de felicidade para o seu dia.</p>
+        <div class="hero-points">
+          <span>♥ Feito com carinho</span>
+          <span>✦ Escolhido para você</span>
+          <span>🚚 Entregas de sexta a domingo</span>
+        </div>
+        <div class="notice notice--hero" id="announcement">Entregas somente às sextas, sábados e domingos. Não trabalhamos com retirada no momento.</div>
+      </div>
+
+      <div class="rx-card">
+        <div class="rx-card__frame">
+          <div class="rx-card__top">
+            <div>
+              <div class="rx-card__brand">Dr. Brownie</div>
+              <div class="rx-card__sub">Doces selecionados</div>
+            </div>
+            <div class="rx-card__date">Data: ___ / ___ / ____</div>
+          </div>
+
+          <div class="rx-prescription">
+            <div class="rx-symbol">Rx</div>
+            <div>
+              <div class="rx-label">Prescrição:</div>
+              <div class="rx-text">1 brownie ao dia.</div>
+            </div>
+          </div>
+
+          <div class="rx-divider"></div>
+
+          <div class="rx-benefits">
+            <div><strong>Qualidade</strong><span>que se sente</span></div>
+            <div><strong>Feito</strong><span>com carinho</span></div>
+            <div><strong>Escolhido</strong><span>para você</span></div>
+          </div>
+
+          <div class="rx-footer-note">Monte seu pedido abaixo e receba a confirmação pelo WhatsApp.</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container page-grid">
+    <section>
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Cardápio</p>
+          <h2>Escolha seus sabores</h2>
+        </div>
+        <span class="stock-note">Estoque atualizado</span>
+      </div>
+      <div id="products" class="product-grid" aria-live="polite"></div>
+    </section>
+
+    <aside class="cart-card cart-card--rx" id="cartCard">
+      <div class="cart-card__header">
+        <div>
+          <p class="eyebrow">Seu pedido</p>
+          <h2>Resumo</h2>
+        </div>
+        <span id="itemCount" class="cart-count">0</span>
+      </div>
+
+      <div id="cartItems" class="cart-items">
+        <p class="muted">Selecione pelo menos um brownie.</p>
+      </div>
+
+      <div class="totals">
+        <div><span>Subtotal</span><strong id="subtotal">R$ 0,00</strong></div>
+        <div><span>Entrega</span><strong id="deliveryFee">R$ 0,00</strong></div>
+        <div class="totals__grand"><span>Total</span><strong id="total">R$ 0,00</strong></div>
+      </div>
+
+      <form id="orderForm" class="order-form">
+        <h3>Dados para entrega</h3>
+        <label>
+          Nome
+          <input name="name" autocomplete="name" required minlength="2" placeholder="Seu nome">
+        </label>
+        <label>
+          WhatsApp
+          <input name="whatsapp" inputmode="tel" autocomplete="tel" required placeholder="(19) 99999-9999">
+        </label>
+        <label>
+          Data da entrega
+          <select name="deliveryDate" id="deliveryDate" required>
+            <option value="">Escolha uma data</option>
+          </select>
+        </label>
+        <label>
+          Endereço completo
+          <input name="address" autocomplete="street-address" required placeholder="Rua, número e complemento">
+        </label>
+        <div class="form-row">
+          <label>
+            Bairro
+            <input name="neighborhood" autocomplete="address-level3" placeholder="Seu bairro">
+          </label>
+          <label>
+            Referência
+            <input name="reference" placeholder="Próximo a...">
+          </label>
+        </div>
+        <label>
+          Observações
+          <textarea name="notes" rows="3" maxlength="500" placeholder="Ex.: tocar a campainha, sem troco..."></textarea>
+        </label>
+        <p class="payment-note" id="paymentMessage">Pagamento via PIX após a confirmação pelo WhatsApp.</p>
+        <button type="submit" class="primary-button" id="submitButton">Enviar pedido pelo WhatsApp</button>
+        <p class="form-feedback" id="formFeedback" role="status"></p>
+      </form>
+    </aside>
+  </main>
+
+  <section class="how-it-works how-it-works--rx">
+    <div class="container">
+      <p class="eyebrow eyebrow--light">Como funciona</p>
+      <h2>Seu pedido em três passos</h2>
+      <div class="steps">
+        <article><span>1</span><h3>Escolha</h3><p>Selecione os sabores e quantidades disponíveis.</p></article>
+        <article><span>2</span><h3>Confirme</h3><p>Envie o pedido e receba a confirmação pelo WhatsApp.</p></article>
+        <article><span>3</span><h3>Receba</h3><p>Faça o PIX e aguarde a entrega no dia escolhido.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container footer-content">
+      <div>
+        <strong>Dr. Brownie</strong>
+        <p>A dose certa de felicidade para o seu dia.</p>
+      </div>
+      <a href="/admin.html" class="admin-link">Acesso administrativo</a>
+    </div>
+  </footer>
+
+  <div class="success-modal" id="successModal" hidden>
+    <div class="success-modal__card">
+      <div class="success-icon">✓</div>
+      <h2>Pedido registrado!</h2>
+      <p id="successText"></p>
+      <a id="whatsappButton" class="primary-button" target="_blank" rel="noopener">Abrir WhatsApp</a>
+      <button class="secondary-button" id="closeSuccess">Voltar ao cardápio</button>
+    </div>
+  </div>
+
+  <script src="/app.js" defer></script>
+</body>
+</html>
